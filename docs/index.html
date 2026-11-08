@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+  Chat PISA — Copyright (c) 2026 José Edson Sebastião, PPGIA/UFRPE. MIT License (see LICENSE).
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PISA 2022 · Consulta à Documentação</title>
+<meta name="description" content="Chat de consulta aos manuais do PISA (OCDE), desenvolvido no mestrado do PPGIA/UFRPE.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="deco d1"></div><div class="deco d2"></div><div class="deco d3"></div>
+
+<header class="top">
+  <div class="brand">
+    <span class="logo">PISA</span><span class="year">2022</span>
+    <div class="brand-title">
+      <strong>Consulta aos Manuais do PISA</strong>
+      <small id="stats">Carregando base…</small>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button id="toggle-manual" class="ghost" type="button">Páginas do manual</button>
+    <button id="open-about" class="ghost" type="button">Sobre o projeto</button>
+    <button id="reset" class="ghost" type="button">Limpar conversa</button>
+    <button id="open-settings" class="ghost icon-btn" type="button" title="Conexão da API" aria-label="Conexão da API">⚙️</button>
+  </div>
+</header>
+
+<div class="workspace" id="workspace">
+  <!-- Coluna Esquerda (menor): Inspecionar páginas do manual -->
+  <aside class="manual-pane" id="manual-pane" aria-label="Páginas do manual">
+    <div class="manual-header">
+      <div>
+        <span class="eyebrow">PÁGINAS DO MANUAL</span>
+        <h2 id="manual-title">Carregando…</h2>
+      </div>
+      <span class="doc-meta" id="manual-meta"></span>
+    </div>
+
+    <div class="manual-controls">
+      <select id="doc-select" aria-label="Selecionar documento"></select>
+      <input id="manual-filter" type="search" placeholder="Buscar termo, página (p. 25) ou trecho (C107)…">
+    </div>
+
+    <div class="manual-reader" id="manual-reader"></div>
+  </aside>
+
+  <!-- Coluna Direita (maior, em destaque): Chatbot -->
+  <main class="chat-pane">
+    <div class="chat-welcome" id="chat-welcome">
+      <h1>Tire dúvidas direto nos manuais do <span>PISA</span></h1>
+      <p>As respostas saem apenas dos documentos da OCDE carregados aqui, sem buscar nada na internet. Clique no código de qualquer citação (como <code>C107</code>) para ler o trecho original na coluna ao lado.</p>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div id="log" aria-live="polite"></div>
+
+    <form id="form" class="composer">
+      <textarea id="q" rows="1" placeholder="Faça uma pergunta sobre o PISA…" required></textarea>
+      <button id="send" type="submit">Enviar</button>
+    </form>
+  </main>
+</div>
+
+<!-- Página flutuante: Sobre o projeto, autor, PPGIA e disciplina -->
+<dialog id="about-modal" class="modal about-dialog">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <span class="eyebrow">MESTRADO · PPGIA / UFRPE</span>
+        <h3>Sobre este projeto</h3>
+      </div>
+      <button id="close-about" class="ghost icon-btn" type="button" aria-label="Fechar">✕</button>
+    </div>
+
+    <div class="about-body">
+      <p>Esta ferramenta foi construída para facilitar a consulta técnica aos documentos oficiais do <strong>PISA (OCDE)</strong> usados na minha pesquisa de mestrado sobre pensamento criativo e resiliência educacional no Brasil.</p>
+
+      <div class="about-grid">
+        <div class="about-card">
+          <span class="eyebrow">AUTOR</span>
+          <strong>José Edson Sebastião</strong>
+          <p>Mestrando em Informática Aplicada<br><code>joseedson.sebastiao@ufrpe.br</code></p>
+        </div>
+        <div class="about-card">
+          <span class="eyebrow">PROGRAMA E DISCIPLINA</span>
+          <strong>PPGIA — UFRPE</strong>
+          <p>Disciplina: Mineração de Texto (2026.2)<br>Prof. Dr. Rafael Ferreira Leite de Mello</p>
+        </div>
+      </div>
+
+      <h4>Como funciona por trás</h4>
+      <ul>
+        <li><strong>Base fechada:</strong> o sistema não pesquisa na web. Ele lê somente os PDFs do PISA indexados na pasta <code>data/</code>.</li>
+        <li><strong>Busca híbrida:</strong> combina busca semântica por embeddings (<code>gemini-embedding-001</code>) com busca por palavras-chave (BM25), unindo os resultados por <em>Reciprocal Rank Fusion</em>.</li>
+        <li><strong>Verificação imediata:</strong> toda resposta indica o código do trecho usado (ex.: <code>C120</code>). Ao clicar nele, a página exata do manual é destacada na coluna da esquerda.</li>
+      </ul>
+
+      <p class="about-foot">© 2026 José Edson Sebastião · Código distribuído sob licença <a href="https://github.com/joseedsonamorim/Chat-PISA-RAG/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a>. Os documentos do PISA pertencem à OCDE e são usados exclusivamente para estudo e pesquisa.</p>
+    </div>
+  </div>
+</dialog>
+
+<!-- Modal discreto de conexão da API -->
+<dialog id="settings-modal" class="modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Conexão da API Gemini</h3>
+      <button id="close-settings" class="ghost icon-btn" type="button" aria-label="Fechar">✕</button>
+    </div>
+    <p id="conn-status" class="muted">Verificando conexão…</p>
+    <label for="key">Chave do Google AI Studio (opcional quando o servidor ou proxy já está ativo):</label>
+    <div class="modal-row">
+      <input id="key" type="password" placeholder="AIzaSy..." autocomplete="off">
+      <button id="savekey" type="button">Salvar</button>
+      <button id="forget" class="ghost" type="button">Limpar</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>

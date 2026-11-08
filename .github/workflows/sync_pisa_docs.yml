@@ -1,0 +1,53 @@
+# Copyright (c) 2026 José Edson Sebastião (PPGIA/UFRPE). MIT License (see LICENSE).
+name: Sync PISA Documentation & Rebuild RAG Index
+
+on:
+  schedule:
+    # Executa toda segunda-feira às 06:00 UTC para verificar novas publicações do PISA
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "data/**.pdf"
+
+permissions:
+  contents: write
+
+jobs:
+  sync-and-index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install google-genai pymupdf numpy
+
+      - name: Check for new or updated PISA PDFs
+        run: python scripts/sync_pisa_docs.py
+
+      - name: Rebuild vector index if PDFs changed
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -n "$(git status --porcelain data/)" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PYTHONPATH=scripts python scripts/build_index.py
+          else
+            echo "Nenhuma alteração nos PDFs em data/."
+          fi
+
+      - name: Commit updated index and documents
+        run: |
+          if [ -n "$(git status --porcelain data/ docs/index.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add data/ docs/index.json
+            git commit -m "chore(rag): auto-sync PISA documents and rebuild vector index"
+            git push
+          fi

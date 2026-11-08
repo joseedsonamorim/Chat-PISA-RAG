@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "Se você utilizar este software ou arquitetura RAG em sua pesquisa, por favor cite-o como abaixo."
+authors:
+  - family-names: "Sebastião"
+    given-names: "José Edson"
+    affiliation: "Programa de Pós-Graduação em Informática Aplicada (PPGIA) — UFRPE"
+title: "Chat PISA — Sistema Conversacional de Recuperação Aumentada por Geração (RAG) Híbrido sobre a Documentação do PISA"
+version: 1.0.0
+date-released: 2026-11-08
+license: MIT
+keywords:
+  - RAG
+  - Retrieval-Augmented Generation
+  - PISA
+  - OECD
+  - Hybrid Search
+  - Reciprocal Rank Fusion
+  - Educational Data Mining
