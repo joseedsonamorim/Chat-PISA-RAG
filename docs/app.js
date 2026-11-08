@@ -1,24 +1,12 @@
 /*!
- * Chat PISA — Ask the PISA Manual (Conversational Hybrid RAG & Document Inspector).
+ * Chat PISA — Caderno de Consulta aos Manuais do PISA (OCDE).
  * Copyright (c) 2026 José Edson Sebastião. PPGIA/UFRPE. All rights reserved
  * under the MIT License (see LICENSE). Source documents remain the property
  * of the OECD and are cited, not relicensed.
- *
- * Arquitetura:
- *   1. Conexão sem fricção (Zero-Prompt UX): utiliza automaticamente o Proxy
- *      local (`/api/gemini/`) ou o Proxy Serverless configurado em `PROXY_URL`
- *      (Cloudflare Worker), sem pedir API Key na tela principal.
- *   2. Recuperação Híbrida (Embeddings Gemini 768d + BM25 via RRF k=60).
- *   3. Condensação Conversacional multi-turno + geração em Streaming SSE.
- *   4. Inspetor interativo do Manual (estilo AI Studio "Ask the Manual"):
- *      clicar em qualquer citação [Cxx] abre e destaca o trecho exato ao lado.
  */
 "use strict";
 
 const DIRECT_API = "https://generativelanguage.googleapis.com/v1beta/models/";
-// Se você publicar o Cloudflare Worker (`proxy/cloudflare_worker.js`), coloque a URL abaixo
-// (ex.: "https://chat-pisa-proxy.seu-usuario.workers.dev/") para que o GitHub Pages funcione
-// sem pedir chave a nenhum visitante.
 const PROXY_URL = "";
 
 const GEN_MODEL = "gemini-flash-latest";
@@ -27,20 +15,20 @@ const CANDIDATES = 30;
 const RRF_K = 60;
 const HISTORY_TURNS = 4;
 
-const SYSTEM = `Você é o "Assistente PISA", um especialista caloroso e didático na documentação do PISA (OCDE) que foi indexada para você.
+const SYSTEM = `Você é um pesquisador especialista na documentação técnica do PISA (OCDE) carregada nesta ferramenta.
 
-Como conversar:
-- Fale de forma natural, como um colega pesquisador que domina o assunto: direto, claro e acolhedor. Sem frases robóticas como "com base nos trechos fornecidos".
-- Responda no idioma da pergunta. Adapte a profundidade: perguntas simples recebem respostas curtas; perguntas complexas, explicações organizadas.
-- Cumprimentos e conversa social podem ser respondidos normalmente, sem citações.
+Como responder:
+- Escreva com clareza, naturalidade e precisão acadêmica, sem clichês de IA e sem abrir com frases mecânicas como "Com base nos trechos fornecidos".
+- Responda no mesmo idioma da pergunta. Vá direto ao ponto no primeiro parágrafo e depois organize os detalhes em parágrafos curtos ou tópicos quando necessário.
+- Cumprimentos breves podem ser respondidos normalmente.
 
-Rigor (obrigatório):
-- Toda informação sobre o PISA deve vir EXCLUSIVAMENTE do CONTEXTO desta mensagem. Cada trecho tem um ID, ex.: [C12].
-- Cite o ID logo após a afirmação que ele sustenta, ex.: "... [C12]". Nunca cite um ID que não esteja no contexto.
-- Se o contexto não traz a resposta, diga isso com honestidade, explique brevemente o que a documentação cobre sobre o tema (se algo) e não invente números, datas ou definições.
-- Lembre que o documento principal indexado é o Third Draft (abril de 2019) do framework de Pensamento Criativo do PISA 2021; avise quando isso for relevante.`;
+Rigor documental (obrigatório):
+- Toda afirmação factual sobre o PISA deve vir EXCLUSIVAMENTE do CONTEXTO desta mensagem. Cada passagem tem um identificador entre colchetes, como [C12].
+- Indique a referência logo após a afirmação que ela sustenta, ex.: "... [C12]". Nunca cite um código que não esteja no contexto.
+- Se o contexto não trouxer a informação pedida, diga de forma direta que a passagem não consta nas páginas carregadas, mencione o que o documento aborda de mais próximo e não invente dados.
+- Lembre, quando relevante, que o documento principal carregado é o Third Draft (abril de 2019) do framework de Pensamento Criativo do PISA 2021.`;
 
-const REWRITE = `Reescreva a ÚLTIMA pergunta do usuário como uma pergunta autônoma e completa para busca em documentos, resolvendo pronomes e referências ao histórico. Mantenha o idioma original. Responda APENAS com a pergunta reescrita, sem explicações.`;
+const REWRITE = `Reescreva a ÚLTIMA pergunta do usuário como uma consulta autônoma e completa para busca documental, resolvendo pronomes a partir do histórico. Mantenha o idioma original e responda APENAS com a pergunta reescrita.`;
 
 let INDEX = null;
 let IDF = {};
@@ -55,11 +43,21 @@ const tok = (s) =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").match(/[a-z0-9]+/g) || [];
 const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+/** Limpa quebras de linha artificiais do PDF para leitura editorial fluida. */
+function cleanPdfProse(raw) {
+  return raw
+    .replace(/^FRAMEWORK FOR THE ASSESSMENT OF CREATIVE THINKING IN PISA 2021 \(THIRD DRAFT\)\s*/i, "")
+    .replace(/^For Official Use\s*/i, "")
+    .replace(/\uF0B7|\u2022/g, "• ")
+    .replace(/([a-z,;:])\n([a-z])/g, "$1 $2")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 async function errMsg(r) {
   try { return (await r.json()).error.message; } catch { return `HTTP ${r.status}`; }
 }
 
-/** Resolve o endpoint (Proxy local -> Proxy Cloudflare -> Chave local no navegador). */
 async function detectConnection() {
   try {
     const r = await fetch("/api/status");
@@ -67,7 +65,7 @@ async function detectConnection() {
       const j = await r.json();
       if (j.proxy) LOCAL_PROXY = true;
     }
-  } catch { /* estático no GitHub Pages */ }
+  } catch { /* modo estático */ }
   updateConnectionStatus();
 }
 
@@ -76,13 +74,13 @@ function updateConnectionStatus() {
   const el = $("conn-status");
   if (!el) return;
   if (LOCAL_PROXY) {
-    el.textContent = "Conectado via Servidor Local (chave carregada automaticamente do ambiente, sem necessidade de digitar chave).";
+    el.textContent = "Conectado ao servidor local (chave carregada do ambiente).";
   } else if (PROXY_URL) {
-    el.textContent = "Conectado via Proxy Institucional Serverless (sem necessidade de chave pelo visitante).";
+    el.textContent = "Conectado via proxy institucional.";
   } else if (key) {
-    el.textContent = "Conectado com chave salva localmente neste navegador.";
+    el.textContent = "Conectado com a chave salva neste navegador.";
   } else {
-    el.textContent = "Modo GitHub Pages estático: configure PROXY_URL ou informe uma chave AIzaSy... do Google AI Studio.";
+    el.textContent = "Modo estático (GitHub Pages): informe uma chave AIzaSy... do Google AI Studio abaixo.";
   }
 }
 
@@ -100,7 +98,7 @@ async function callGeminiEndpoint(action, body) {
     headers["x-goog-api-key"] = key;
   } else {
     $("settings-modal").showModal();
-    throw new Error("Configure a conexão da API no botão ⚙️ (ou inicie com scripts/serve_local.py).");
+    throw new Error("Configure uma chave do Google AI Studio no ícone de engrenagem no topo.");
   }
 
   const r = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
@@ -108,7 +106,7 @@ async function callGeminiEndpoint(action, body) {
   return r;
 }
 
-/* ---------- Índice e Inspetor do Manual ---------- */
+/* ---------- Índice e Leitor Editorial ---------- */
 async function loadIndex() {
   INDEX = await (await fetch("index.json")).json();
   const df = {};
@@ -131,22 +129,20 @@ async function loadIndex() {
   docs.forEach((d) => {
     const opt = document.createElement("option");
     opt.value = d.id;
-    opt.textContent = `${d.title} (${d.pages} p.)`;
+    opt.textContent = d.title;
     sel.appendChild(opt);
   });
   ACTIVE_DOC = docs[0].id;
   renderManual();
 
-  const updated = INDEX.updated_at ? ` · atualizado em ${INDEX.updated_at.slice(0, 10)}` : "";
-  $("stats").textContent = `${N} trechos · ${docs.length} documento(s) oficial(is) · ${INDEX.embed_model}${updated}`;
+  $("stats").textContent = `Fonte: ${docs[0].title} (${docs[0].pages} páginas, ${N} passagens indexadas)`;
 }
 
 function renderManual(filterText = "") {
   if (!INDEX) return;
   const docs = INDEX.documents || [];
-  const docInfo = docs.find((d) => d.id === ACTIVE_DOC) || { title: ACTIVE_DOC, pages: "?", chunks: INDEX.chunks.length };
-  $("manual-title").textContent = docInfo.title;
-  $("manual-meta").textContent = `${docInfo.pages} págs · ${docInfo.chunks} trechos`;
+  const docInfo = docs.find((d) => d.id === ACTIVE_DOC) || { title: ACTIVE_DOC, pages: 56, chunks: INDEX.chunks.length };
+  $("manual-meta").textContent = `${docInfo.pages} p. · ${docInfo.chunks} ref.`;
 
   const q = filterText.trim().toLowerCase();
   const reader = $("manual-reader");
@@ -170,11 +166,11 @@ function renderManual(filterText = "") {
     card.id = `manual-${c.id}`;
     const head = document.createElement("div");
     head.className = "chunk-head";
-    head.innerHTML = `<span>Trecho [${c.id}]${LAST_RETRIEVED.has(c.id) ? " · recuperado na última busca" : ""}</span><span class="page-badge">Página ${c.page}</span>`;
-    const pre = document.createElement("pre");
-    pre.className = "chunk-text";
-    pre.textContent = c.text;
-    card.append(head, pre);
+    head.innerHTML = `<span><strong>Ref. ${c.id}</strong>${LAST_RETRIEVED.has(c.id) ? " · consultada" : ""}</span><span>p. ${c.page}</span>`;
+    const p = document.createElement("p");
+    p.className = "chunk-text";
+    p.textContent = cleanPdfProse(c.text);
+    card.append(head, p);
     reader.appendChild(card);
   });
 }
@@ -182,6 +178,7 @@ function renderManual(filterText = "") {
 function focusChunkInManual(chunkId) {
   const ws = $("workspace");
   ws.classList.remove("manual-hidden");
+  $("toggle-manual").classList.add("active");
   $("manual-filter").value = "";
   const targetChunk = INDEX?.chunks.find((c) => c.id === chunkId);
   if (targetChunk && targetChunk.doc !== ACTIVE_DOC) {
@@ -258,7 +255,7 @@ async function generateStream(q, hits, onText) {
   const r = await callGeminiEndpoint(`${GEN_MODEL}:streamGenerateContent?alt=sse`, {
     systemInstruction: { parts: [{ text: SYSTEM }] },
     contents,
-    generationConfig: { temperature: 0.4 },
+    generationConfig: { temperature: 0.35 },
   });
   const reader = r.body.getReader();
   const dec = new TextDecoder();
@@ -285,12 +282,12 @@ function fmt(text) {
     .replace(/\[(C\d+(?:\s*,\s*C\d+)*)\]/g, (_, group) =>
       group
         .split(/\s*,\s*/)
-        .map((id) => `<button type="button" class="cite" data-cid="${id}" title="Ver ${id} no Inspetor do Manual">${id}</button>`)
-        .join(" ")
+        .map((id) => `<button type="button" class="cite" data-cid="${id}" title="Ler passagem ${id} no original">[${id}]</button>`)
+        .join("")
     );
   const out = []; let list = false;
   for (const line of text.split("\n")) {
-    const m = line.match(/^\s*[*-]\s+(.*)/);
+    const m = line.match(/^\s*(?:[*-]|\d+\.)\s+(.*)/);
     if (m) { if (!list) { out.push("<ul>"); list = true; } out.push(`<li>${inline(m[1])}</li>`); continue; }
     if (list) { out.push("</ul>"); list = false; }
     const trimmed = line.trim();
@@ -304,6 +301,7 @@ function fmt(text) {
 }
 
 function add(cls, text) {
+  document.querySelector(".chat-pane").classList.add("has-messages");
   const d = document.createElement("div");
   d.className = `msg ${cls}`;
   d.textContent = text;
@@ -318,23 +316,23 @@ function addSources(el, hits, answer) {
   box.className = "sources";
   const lab = document.createElement("span");
   lab.className = "label";
-  lab.textContent = "Inspecionar páginas:";
+  lab.textContent = "Passagens consultadas:";
   box.append(lab);
   hits.forEach((c) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = `source-pill${cited.has(c.id) ? " used" : ""}`;
     btn.dataset.cid = c.id;
-    btn.textContent = `${cited.has(c.id) ? "✔ " : ""}${c.id} · p. ${c.page}`;
+    btn.textContent = `${c.id} · p. ${c.page}`;
     box.append(btn);
   });
   el.append(box);
 }
 
-/* ---------- Fluxo de Conversa ---------- */
+/* ---------- Fluxo de Consulta ---------- */
 async function ask(q) {
   add("user", q);
-  const out = add("bot thinking", "Consultando o manual do PISA…");
+  const out = add("bot thinking", "Localizando passagens no manual…");
   $("send").disabled = true;
   try {
     const standalone = await condense(q);
@@ -354,17 +352,17 @@ async function ask(q) {
     if (firstCited) focusChunkInManual(firstCited);
   } catch (e) {
     out.classList.remove("thinking");
-    out.textContent = "Aviso: " + e.message;
+    out.textContent = "Não foi possível concluir a consulta: " + e.message;
   } finally {
     $("send").disabled = false;
   }
 }
 
-/* ---------- Eventos da Interface ---------- */
+/* ---------- Eventos ---------- */
 const EXAMPLES = [
-  "O que é pensamento criativo segundo o PISA e quais são as três facetas?",
-  "Quais são os quatro domínios aplicados na avaliação?",
-  "Como as tarefas abertas de expressão visual são pontuadas?",
+  "Como o PISA define pensamento criativo e quais são as três facetas avaliadas?",
+  "Quais são os quatro domínios de aplicação das tarefas no teste?",
+  "Como funcionam os critérios de pontuação para respostas abertas de expressão visual?",
 ];
 
 EXAMPLES.forEach((t) => {
@@ -381,15 +379,26 @@ $("log").addEventListener("click", (e) => {
 
 $("doc-select").onchange = (e) => { ACTIVE_DOC = e.target.value; renderManual($("manual-filter").value); };
 $("manual-filter").oninput = (e) => renderManual(e.target.value);
-$("toggle-manual").onclick = () => $("workspace").classList.toggle("manual-hidden");
-$("reset").onclick = () => { history.length = 0; $("log").innerHTML = ""; LAST_RETRIEVED.clear(); renderManual(""); };
+$("toggle-manual").onclick = () => {
+  const hidden = $("workspace").classList.toggle("manual-hidden");
+  $("toggle-manual").classList.toggle("active", !hidden);
+};
+$("reset").onclick = () => {
+  history.length = 0;
+  $("log").innerHTML = "";
+  document.querySelector(".chat-pane").classList.remove("has-messages");
+  LAST_RETRIEVED.clear();
+  renderManual("");
+};
 
 $("open-about").onclick = () => $("about-modal").showModal();
 $("close-about").onclick = () => $("about-modal").close();
 $("about-modal").onclick = (e) => { if (e.target === $("about-modal")) $("about-modal").close(); };
+
 $("open-settings").onclick = () => { updateConnectionStatus(); $("settings-modal").showModal(); };
 $("close-settings").onclick = () => $("settings-modal").close();
 $("settings-modal").onclick = (e) => { if (e.target === $("settings-modal")) $("settings-modal").close(); };
+
 $("savekey").onclick = () => {
   const v = $("key").value.trim();
   if (v) { localStorage.setItem("gemini_key", v); $("key").value = ""; updateConnectionStatus(); $("settings-modal").close(); }
@@ -410,5 +419,5 @@ $("q").addEventListener("keydown", (e) => {
 });
 
 Promise.all([loadIndex(), detectConnection()]).catch(
-  (e) => ($("stats").textContent = "Falha ao carregar o índice: " + e.message)
+  (e) => ($("stats").textContent = "Erro ao carregar índice: " + e.message)
 );

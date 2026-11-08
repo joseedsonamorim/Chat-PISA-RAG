@@ -6,120 +6,135 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>PISA 2022 · Consulta à Documentação</title>
-<meta name="description" content="Chat de consulta aos manuais do PISA (OCDE), desenvolvido no mestrado do PPGIA/UFRPE.">
+<title>PISA 2022 · Consulta aos Manuais</title>
+<meta name="description" content="Ambiente de leitura e consulta aos documentos oficiais do PISA (OCDE). PPGIA/UFRPE.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="deco d1"></div><div class="deco d2"></div><div class="deco d3"></div>
 
-<header class="top">
-  <div class="brand">
-    <span class="logo">PISA</span><span class="year">2022</span>
-    <div class="brand-title">
-      <strong>Consulta aos Manuais do PISA</strong>
-      <small id="stats">Carregando base…</small>
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="mark" aria-label="PISA 2022">
+      <span class="mark-pisa">PISA</span><span class="mark-year">2022</span>
     </div>
+    <span class="divider" aria-hidden="true"></span>
+    <span class="app-title">Caderno de Consulta · Pensamento Criativo</span>
   </div>
-  <div class="top-actions">
-    <button id="toggle-manual" class="ghost" type="button">Páginas do manual</button>
-    <button id="open-about" class="ghost" type="button">Sobre o projeto</button>
-    <button id="reset" class="ghost" type="button">Limpar conversa</button>
-    <button id="open-settings" class="ghost icon-btn" type="button" title="Conexão da API" aria-label="Conexão da API">⚙️</button>
-  </div>
+
+  <nav class="topbar-nav" aria-label="Controles da aplicação">
+    <button id="toggle-manual" class="nav-link active" type="button">Texto do manual</button>
+    <button id="open-about" class="nav-link" type="button">Sobre a pesquisa</button>
+    <button id="reset" class="nav-link" type="button">Nova consulta</button>
+    <button id="open-settings" class="nav-link nav-icon" type="button" title="Configurar chave da API" aria-label="Configurar chave da API">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+  </nav>
 </header>
 
 <div class="workspace" id="workspace">
-  <!-- Coluna Esquerda (menor): Inspecionar páginas do manual -->
-  <aside class="manual-pane" id="manual-pane" aria-label="Páginas do manual">
-    <div class="manual-header">
-      <div>
-        <span class="eyebrow">PÁGINAS DO MANUAL</span>
-        <h2 id="manual-title">Carregando…</h2>
+  <!-- Coluna Esquerda (menor): Leitor editorial do documento -->
+  <aside class="manual-pane" id="manual-pane" aria-label="Texto original do manual">
+    <div class="manual-bar">
+      <div class="manual-doc-line">
+        <select id="doc-select" aria-label="Documento"></select>
+        <span class="doc-meta" id="manual-meta"></span>
       </div>
-      <span class="doc-meta" id="manual-meta"></span>
-    </div>
-
-    <div class="manual-controls">
-      <select id="doc-select" aria-label="Selecionar documento"></select>
-      <input id="manual-filter" type="search" placeholder="Buscar termo, página (p. 25) ou trecho (C107)…">
+      <div class="manual-search-wrap">
+        <input id="manual-filter" type="search" placeholder="Localizar palavra, página (p. 25) ou ref. (C107)…">
+      </div>
     </div>
 
     <div class="manual-reader" id="manual-reader"></div>
   </aside>
 
-  <!-- Coluna Direita (maior, em destaque): Chatbot -->
+  <!-- Coluna Direita (maior, em destaque): Consulta conversacional -->
   <main class="chat-pane">
-    <div class="chat-welcome" id="chat-welcome">
-      <h1>Tire dúvidas direto nos manuais do <span>PISA</span></h1>
-      <p>As respostas saem apenas dos documentos da OCDE carregados aqui, sem buscar nada na internet. Clique no código de qualquer citação (como <code>C107</code>) para ler o trecho original na coluna ao lado.</p>
-      <div class="chips" id="chips"></div>
+    <div class="chat-scroll" id="chat-scroll">
+      <div class="empty-state" id="chat-welcome">
+        <p class="kicker">Documentação oficial · OCDE</p>
+        <h1>O que você precisa consultar no manual do PISA?</h1>
+        <p class="empty-desc">As respostas são redigidas exclusivamente a partir das páginas do documento carregado ao lado, sem acesso à internet. Cada afirmação traz a referência exata da passagem utilizada.</p>
+        <div class="starters" id="chips" aria-label="Sugestões de consulta"></div>
+      </div>
+
+      <div id="log" aria-live="polite"></div>
     </div>
 
-    <div id="log" aria-live="polite"></div>
-
-    <form id="form" class="composer">
-      <textarea id="q" rows="1" placeholder="Faça uma pergunta sobre o PISA…" required></textarea>
-      <button id="send" type="submit">Enviar</button>
-    </form>
+    <div class="composer-shell">
+      <form id="form" class="composer">
+        <textarea id="q" rows="1" placeholder="Escreva sua pergunta sobre o PISA…" required></textarea>
+        <button id="send" type="submit" aria-label="Enviar pergunta">
+          <span>Perguntar</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </form>
+      <div class="composer-foot">
+        <span id="stats">Carregando índice…</span>
+        <span>Clique nas referências <code>[Cxx]</code> para ler o parágrafo no original.</span>
+      </div>
+    </div>
   </main>
 </div>
 
-<!-- Página flutuante: Sobre o projeto, autor, PPGIA e disciplina -->
-<dialog id="about-modal" class="modal about-dialog">
+<!-- Folha flutuante: Sobre a pesquisa, autor, PPGIA e disciplina -->
+<dialog id="about-modal" class="modal">
   <div class="modal-box">
-    <div class="modal-head">
+    <header class="modal-head">
       <div>
-        <span class="eyebrow">MESTRADO · PPGIA / UFRPE</span>
+        <p class="kicker">PPGIA · UFRPE</p>
         <h3>Sobre este projeto</h3>
       </div>
-      <button id="close-about" class="ghost icon-btn" type="button" aria-label="Fechar">✕</button>
-    </div>
+      <button id="close-about" class="close-btn" type="button" aria-label="Fechar">✕</button>
+    </header>
 
     <div class="about-body">
-      <p>Esta ferramenta foi construída para facilitar a consulta técnica aos documentos oficiais do <strong>PISA (OCDE)</strong> usados na minha pesquisa de mestrado sobre pensamento criativo e resiliência educacional no Brasil.</p>
+      <p>Este ambiente foi desenvolvido para apoiar a leitura e a verificação de conceitos nos documentos técnicos do <strong>PISA (OCDE)</strong> que fundamentam minha dissertação de mestrado sobre pensamento criativo e resiliência educacional no Brasil.</p>
 
-      <div class="about-grid">
-        <div class="about-card">
-          <span class="eyebrow">AUTOR</span>
-          <strong>José Edson Sebastião</strong>
-          <p>Mestrando em Informática Aplicada<br><code>joseedson.sebastiao@ufrpe.br</code></p>
+      <dl class="meta-list">
+        <div>
+          <dt>Autor</dt>
+          <dd><strong>José Edson Sebastião</strong><br>Mestrando em Informática Aplicada · <a href="mailto:joseedson.sebastiao@ufrpe.br">joseedson.sebastiao@ufrpe.br</a></dd>
         </div>
-        <div class="about-card">
-          <span class="eyebrow">PROGRAMA E DISCIPLINA</span>
-          <strong>PPGIA — UFRPE</strong>
-          <p>Disciplina: Mineração de Texto (2026.2)<br>Prof. Dr. Rafael Ferreira Leite de Mello</p>
+        <div>
+          <dt>Programa e disciplina</dt>
+          <dd><strong>PPGIA — Universidade Federal Rural de Pernambuco</strong><br>Mineração de Texto (2026.2) · Prof. Dr. Rafael Ferreira Leite de Mello</dd>
         </div>
-      </div>
+        <div>
+          <dt>Método (RAG híbrido)</dt>
+          <dd>Os PDFs da pasta <code>data/</code> são segmentados por página e indexados com embeddings <code>gemini-embedding-001</code> (768d). A busca combina similaridade de cosseno e BM25 por <em>Reciprocal Rank Fusion</em>, restringindo a geração apenas aos trechos recuperados.</dd>
+        </div>
+      </dl>
 
-      <h4>Como funciona por trás</h4>
-      <ul>
-        <li><strong>Base fechada:</strong> o sistema não pesquisa na web. Ele lê somente os PDFs do PISA indexados na pasta <code>data/</code>.</li>
-        <li><strong>Busca híbrida:</strong> combina busca semântica por embeddings (<code>gemini-embedding-001</code>) com busca por palavras-chave (BM25), unindo os resultados por <em>Reciprocal Rank Fusion</em>.</li>
-        <li><strong>Verificação imediata:</strong> toda resposta indica o código do trecho usado (ex.: <code>C120</code>). Ao clicar nele, a página exata do manual é destacada na coluna da esquerda.</li>
-      </ul>
-
-      <p class="about-foot">© 2026 José Edson Sebastião · Código distribuído sob licença <a href="https://github.com/joseedsonamorim/Chat-PISA-RAG/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a>. Os documentos do PISA pertencem à OCDE e são usados exclusivamente para estudo e pesquisa.</p>
+      <p class="about-foot">© 2026 José Edson Sebastião. Código sob licença <a href="https://github.com/joseedsonamorim/Chat-PISA-RAG/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a>. O texto dos relatórios pertence à OCDE e é reproduzido aqui exclusivamente para fins de pesquisa acadêmica.</p>
     </div>
   </div>
 </dialog>
 
-<!-- Modal discreto de conexão da API -->
+<!-- Folha flutuante: Conexão da API -->
 <dialog id="settings-modal" class="modal">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>Conexão da API Gemini</h3>
-      <button id="close-settings" class="ghost icon-btn" type="button" aria-label="Fechar">✕</button>
-    </div>
+    <header class="modal-head">
+      <div>
+        <p class="kicker">Configuração</p>
+        <h3>Chave de acesso ao Gemini</h3>
+      </div>
+      <button id="close-settings" class="close-btn" type="button" aria-label="Fechar">✕</button>
+    </header>
     <p id="conn-status" class="muted">Verificando conexão…</p>
-    <label for="key">Chave do Google AI Studio (opcional quando o servidor ou proxy já está ativo):</label>
+    <label class="field-label" for="key">Chave do Google AI Studio (necessária apenas no modo estático sem servidor):</label>
     <div class="modal-row">
       <input id="key" type="password" placeholder="AIzaSy..." autocomplete="off">
-      <button id="savekey" type="button">Salvar</button>
-      <button id="forget" class="ghost" type="button">Limpar</button>
+      <button id="savekey" class="btn-primary" type="button">Salvar</button>
+      <button id="forget" class="btn-secondary" type="button">Remover</button>
     </div>
   </div>
 </dialog>
