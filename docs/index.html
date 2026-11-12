@@ -28,12 +28,6 @@
     <button id="toggle-manual" class="nav-link active" type="button">Texto do manual</button>
     <button id="open-about" class="nav-link" type="button">Sobre a pesquisa</button>
     <button id="reset" class="nav-link" type="button">Nova consulta</button>
-    <button id="open-settings" class="nav-link nav-icon" type="button" title="Configurar chave da API" aria-label="Configurar chave da API">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-      </svg>
-    </button>
   </nav>
 </header>
 
@@ -115,26 +109,6 @@
       </dl>
 
       <p class="about-foot">© 2026 José Edson Sebastião. Código sob licença <a href="https://github.com/joseedsonamorim/Chat-PISA-RAG/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a>. O texto dos relatórios pertence à OCDE e é reproduzido aqui exclusivamente para fins de pesquisa acadêmica.</p>
-    </div>
-  </div>
-</dialog>
-
-<!-- Folha flutuante: Conexão da API -->
-<dialog id="settings-modal" class="modal">
-  <div class="modal-box">
-    <header class="modal-head">
-      <div>
-        <p class="kicker">Configuração</p>
-        <h3>Chave de acesso ao Gemini</h3>
-      </div>
-      <button id="close-settings" class="close-btn" type="button" aria-label="Fechar">✕</button>
-    </header>
-    <p id="conn-status" class="muted">Verificando conexão…</p>
-    <label class="field-label" for="key">Chave do Google AI Studio (necessária apenas no modo estático sem servidor):</label>
-    <div class="modal-row">
-      <input id="key" type="password" placeholder="AIzaSy..." autocomplete="off">
-      <button id="savekey" class="btn-primary" type="button">Salvar</button>
-      <button id="forget" class="btn-secondary" type="button">Remover</button>
     </div>
   </div>
 </dialog>

@@ -1,0 +1,422 @@
+{
+  "Como o PISA define pensamento criativo e quais são as três facetas avaliadas?": {
+    "answer": "O PISA avalia o pensamento criativo mensurando a capacidade dos estudantes de se engajarem produtivamente nos processos cognitivos de geração de ideias (sejam elas diversas ou criativas) e de avaliação e aprimoramento de ideias [C96]. A avaliação não contempla apenas os processos cognitivos divergentes, exigindo também que os estudantes analisem ideias de outras pessoas e proponham melhorias originais para elas [C96]. Essas ideias podem assumir variadas formas, tais como histórias, desenhos, soluções para problemas sociais ou formulações de perguntas de pesquisa sobre fenômenos científicos [C96].\n\nPara fins de mensuração, o modelo de competências do PISA estrutura o pensamento criativo em três facetas principais [C96]:\n\n* **Gerar ideias diversas** (*generate diverse ideas*) [C96];\n* **Gerar ideias criativas** (*generate creative ideas*) [C96];\n* **Avaliar e aprimorar ideias** (*evaluate and improve ideas*) [C96].",
+    "hits": [
+      {
+        "id": "C23",
+        "page": 7,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C155",
+        "page": 39,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C95",
+        "page": 22,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C2",
+        "page": 3,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C96",
+        "page": 22,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C214",
+        "page": 53,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  },
+  "Quais são os quatro domínios de aplicação das tarefas no teste?": {
+    "answer": "A estrutura da avaliação contempla quatro domínios que cobrem as atividades típicas de pensamento criativo de estudantes de 15 anos [C82]. Com base nos registros do texto, esses domínios dividem-se entre manifestações expressivas e funcionais:\n\n* **Domínio verbal:** identificado como uma das amplas áreas de categorização de tarefas de criatividade [C35].\n* **Domínio artístico:** destacado juntamente com o verbal como uma dimensão separada de manifestação criativa [C35].\n* **Resolução de problemas científicos (*scientific problem solving*):** subdivisão do engajamento criativo funcional voltada à investigação e criação de soluções em questões abertas [C82].\n* **Resolução de problemas sociais (*social problem solving*):** subdivisão do engajamento criativo funcional destinada à geração de respostas inovadoras e eficazes para questões sociais [C82, C146].\n\nEmbora o fragmento mencione a consolidação dos quatro domínios de avaliação em conjunto [C82], os âmbitos verbal e artístico são apresentados na fundamentação conceitual de tarefas [C35], enquanto os de resolução de problemas científicos e sociais são detalhados como a vertente prática de criação de conhecimento e solução de problemas [C82].",
+    "hits": [
+      {
+        "id": "C35",
+        "page": 9,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C82",
+        "page": 19,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C80",
+        "page": 19,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C164",
+        "page": 41,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C146",
+        "page": 35,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C204",
+        "page": 51,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  },
+  "Como funcionam os critérios de pontuação para respostas abertas de expressão visual?": {
+    "answer": "Os critérios de pontuação para tarefas de expressão visual são estruturados para ser o mais objetivos e inclusivos possível quanto à diversidade de respostas, avaliando primordialmente a capacidade do estudante de gerar ideias de design distintas e relevantes [C123, C143].\n\nA avaliação orienta-se pelos seguintes parâmetros centrais:\n\n* **Diferenciação visual:** Para comprovar a produção de ideias \"diferentes\", avalia-se se o estudante incorporou elementos visuais distintos em cada criação ou se utilizou diferentes combinações das formas geométricas e carimbos (*stamps*) disponibilizados na ferramenta digital [C143]. Em tarefas como a criação de um logotipo, por exemplo, o critério pode se resumir a combinar formas distintas para produzir uma nova imagem [C123].\n* **Rubricas detalhadas com base empírica:** A pontuação é guiada por rubricas detalhadas que trazem exemplos práticos de soluções de design claramente distintas [C143]. Esses modelos de respostas são calibrados com dados empíricos obtidos previamente em estudos de validação e laboratórios cognitivos [C143].\n* **Tratamento de ambiguidades e relevância:** As diretrizes de correção preveem critérios para classificar respostas em casos nos quais a coerência ou a relevância do desenho não sejam evidentes de imediato ou se mostrem ambíguas [C143]. Além disso, as tarefas de resposta construída podem demandar um pequeno texto no qual o estudante explica a sua ideia de design [C117].",
+    "hits": [
+      {
+        "id": "C141",
+        "page": 33,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C87",
+        "page": 20,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C143",
+        "page": 34,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C88",
+        "page": 21,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C123",
+        "page": 28,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C117",
+        "page": 27,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  },
+  "Qual a relação entre pensamento criativo, práticas de professores e fatores escolares no PISA?": {
+    "answer": "No âmbito dos documentos do PISA apresentados, a relação entre o pensamento criativo, as práticas pedagógicas e os fatores escolares centra-se no apoio a novas pedagogias que desenvolvam essa competência e na proposição de tarefas que reflitam o cotidiano escolar [C14, C82]. Notadamente, o Centro de Pesquisa e Inovação Educacional (CERI) da OCDE liderou um estudo envolvendo onze países focado em formas de ensinar e avaliar o pensamento criativo e crítico, o qual apresentou resultados iniciais encorajadores [C14].\n\nOs registros detalham essa interface a partir dos seguintes aspectos:\n\n* **Integração pedagógica e práticas docentes:** O desenvolvimento de novas práticas de ensino busca fomentar o pensamento criativo e crítico dos estudantes [C14], fundamentando-se em pesquisas e modelos voltados ao ensino do pensamento criativo e a novas abordagens de avaliação formativa em ambiente escolar [C208].\n* **Representatividade das atividades escolares:** Os domínios avaliados pelo PISA buscam cobrir atividades nas quais alunos de 15 anos tipicamente participam, refletindo manifestações reais e cotidianas do pensamento criativo, embora a estrutura reconheça que essas atividades não esgotam todas as possibilidades de expressão criativa na escola [C82].\n* **Engajamento funcional e resolução de problemas:** As práticas avaliadas demandam a aplicação funcional do pensamento criativo em problemas abertos — sejam científicos ou sociais —, exigindo que os estudantes gerem ideias e soluções originais, inovadoras, eficazes e apropriadas para diferentes domínios [C82, C106].",
+    "hits": [
+      {
+        "id": "C208",
+        "page": 52,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C106",
+        "page": 24,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C215",
+        "page": 54,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C82",
+        "page": 19,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C14",
+        "page": 5,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C204",
+        "page": 51,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  },
+  "Qual o papel de atitudes como abertura ao intelecto (openness) e autoeficácia criativa?": {
+    "answer": "A abertura e a autoeficácia criativa atuam como preditores essenciais do desempenho criativo, fornecendo tanto a disposição cognitiva e atitudinal para explorar novas ideias quanto a sustentação motivacional necessária para perseverar diante de desafios [C50, C53, C56].\n\n**Abertura e abertura ao intelecto**\n* **Fator geral de abertura (*openness*):** Pesquisas sobre personalidade indicam que indivíduos criativos compartilham tendências centrais, com destaque para a abertura, que engloba tanto a \"abertura à experiência\" quanto a \"abertura ao intelecto\" [C50, C51]. A abertura à experiência destaca-se por ser a única dimensão do modelo *Big Five* correlacionada positivamente com realizações criativas em todos os domínios e com o pensamento divergente [C51], envolvendo receptividade a ideias novas, imaginação, curiosidade e comportamento exploratório [C52, C53].\n* **Abertura ao intelecto (*openness to intellect*):** Configura-se como um traço correlato, porém distinto, que se refere ao engajamento cognitivo com informações abstratas e semânticas, operado principalmente por meio do raciocínio [C53]. Esse construto prediz realizações criativas e apresenta uma correlação particular com a criatividade científica [C53].\n\n**Autoeficácia criativa**\n* **Conceito:** Refere-se às crenças mantidas pelos indivíduos a respeito de sua própria capacidade de realizar uma tarefa de maneira criativa [C56].\n* **Persistência e perseverança:** A autoeficácia criativa está fortemente associada à orientação para objetivos e é considerada determinante para que o estudante sustente o esforço diante da frustração e da resistência (persistir) e atinja o êxito final na execução de tarefas criativas (perseverar) [C56].\n* **Fatores condicionantes:** Essas crenças de autoeficácia são influenciadas pelo histórico de desempenho anterior, pelo humor e pelo ambiente social em que a atividade se desenvolve, tornando o fortalecimento dessas atitudes e comportamentos autorregulatórios um foco relevante para o trabalho pedagógico em sala de aula [C56].",
+    "hits": [
+      {
+        "id": "C53",
+        "page": 13,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C51",
+        "page": 13,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C52",
+        "page": 13,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C50",
+        "page": 13,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C56",
+        "page": 14,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C192",
+        "page": 47,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  },
+  "Como é avaliada a resolução de problemas sociais e científicos no teste de pensamento criativo?": {
+    "answer": "A avaliação da resolução de problemas sociais e científicos integra a área de \"criação de conhecimento e resolução criativa de problemas\", caracterizando-se pelo uso funcional do pensamento criativo voltado à investigação de problemas abertos que não possuem uma resposta única [C82]. Nesses domínios, o teste avalia a capacidade do estudante de gerar soluções originais, inovadoras, eficazes e eficientes como meio para atingir um resultado melhor [C82], priorizando os processos empregados para buscar ideias e resolver a questão em vez da produção de uma resposta estritamente \"certa\" ou \"ótima\" [C92].\n\nA aplicação dessa avaliação organiza-se a partir dos seguintes aspectos:\n\n* **Estrutura das tarefas e unidades:** As tarefas utilizam contextos significativos e abertos que exigem dos estudantes a habilidade de produzir múltiplas ideias e pensar de maneira não convencional (\"fora da caixa\") [C97], diante de problemas sem solução ótima evidente [C92]. Embora o teste cubra as facetas do modelo de competências no nível populacional, nem todas as unidades contêm pontos de observação para todas as facetas [C97].\n* **Resolução de problemas sociais:** Ao avaliar a geração de ideias diversas, exige-se que o aluno proponha múltiplas soluções diferentes para um problema social (como a escassez de água), as quais devem recorrer a diferentes atores, instrumentos ou métodos para atingir o objetivo [C111]. A identificação de soluções originais e eficazes está atrelada à curiosidade em relação ao problema, à compreensão das necessidades dos outros e à perspectiva de fazer a diferença com novas ideias [C160].\n* **Resolução de problemas científicos:** Os estudantes são avaliados quanto à forma como abordam problemas abertos em contextos científicos [C92]. Isso abrange o desenvolvimento de múltiplos métodos matemáticos para solucionar uma questão aberta (como definir o jogador mais consistente de uma equipe), a elaboração de diferentes hipóteses e planos de experimentos para investigar observações (como animais que repentinamente ficam agressivos) [C111], ou a criação de perguntas de pesquisa sobre um fenômeno científico [C97]. O domínio científico explora a motivação da tarefa, que estimula a persistência e a investigação sobre o funcionamento dos fenômenos [C160].",
+    "hits": [
+      {
+        "id": "C92",
+        "page": 21,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C160",
+        "page": 40,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C82",
+        "page": 19,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C111",
+        "page": 26,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C97",
+        "page": 22,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C204",
+        "page": 51,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  },
+  "Por que a OCDE decidiu avaliar o pensamento criativo no PISA?": {
+    "answer": "A inclusão da avaliação do pensamento criativo no PISA busca impulsionar mudanças positivas nas políticas educacionais e nas práticas pedagógicas, disponibilizando aos formuladores de políticas públicas instrumentos de medição válidos, confiáveis e práticos para a tomada de decisões fundamentadas em evidências [C13].\n\nAlém desse suporte direto à gestão educacional, a decisão fundamenta-se nos seguintes objetivos:\n\n* **Estímulo ao debate social:** A divulgação dos dados visa incentivar uma discussão ampla na sociedade a respeito tanto da importância dessa competência quanto dos métodos mais eficazes para desenvolvê-la no âmbito escolar [C13].\n* **Alinhamento com iniciativas pedagógicas:** A ação articula-se com outro projeto da OCDE dedicado ao suporte de novas pedagogias voltadas à promoção do pensamento criativo [C13].\n* **Inspiração para avaliações futuras:** O desenho do modelo de avaliação também se propõe a fornecer bases conceituais — reconhecendo, por exemplo, o papel de competências individuais facilitadoras como a colaboração — para inspirar futuros instrumentos avaliativos sobre o tema [C77].",
+    "hits": [
+      {
+        "id": "C2",
+        "page": 3,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C77",
+        "page": 18,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C82",
+        "page": 19,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C21",
+        "page": 7,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C13",
+        "page": 5,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C214",
+        "page": 53,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  },
+  "Qual a diferença entre gerar ideias diversas e gerar ideias criativas?": {
+    "answer": "A diferença fundamental reside no foco da avaliação: enquanto a faceta de **gerar ideias diversas** mede a flexibilidade ideacional do estudante para produzir múltiplas respostas substancialmente distintas entre si, a faceta de **gerar ideias criativas** foca na capacidade de propor uma resposta que seja simultaneamente original e apropriada para a situação proposta [C101, C102, C106].\n\nAs principais características que distinguem cada uma dessas facetas no modelo do PISA incluem:\n\n* **Gerar ideias diversas (*generate diverse ideas*):** \n  * Prioriza a flexibilidade cognitiva e a capacidade de evitar a fixação funcional durante a ideação, valorizando respostas que pertençam a categorias marcadamente diferentes em vez de variações dentro da mesma categoria [C101, C102]. Por exemplo, em uma tarefa de usos alternativos para uma folha de papel, propor usos em quatro categorias distintas pontua mais alto do que listar variações de uso como superfície de desenho/escrita [C102].\n  * Exige que as ideias apresentadas sejam suficientemente diferentes umas das outras para além de simples alterações de sinônimos [C137].\n  * Abrange a produção de múltiplos títulos ou enredos com interpretações distintas, a combinação variada de formas visuais, a apresentação de soluções para problemas sociais recorrendo a diferentes métodos/atores, ou a formulação de múltiplas hipóteses e métodos matemáticos [C111].\n\n* **Gerar ideias criativas (*generate creative ideas*):**\n  * Concentra-se na busca por soluções ou produtos que sejam originais e apropriados/eficazes dentro de diferentes domínios [C106, C112].\n  * Exige originalidade atrelada a uma utilidade ou viabilidade concreta, como produzir um título original relacionado a uma obra artística, elaborar um cartaz original que transmita o tema pretendido, conceber uma estratégia mercadológica original e viável, ou gerar uma solução original e executável para um problema de engenharia [C112].",
+    "hits": [
+      {
+        "id": "C111",
+        "page": 26,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C137",
+        "page": 32,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C102",
+        "page": 24,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C112",
+        "page": 26,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C106",
+        "page": 24,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C101",
+        "page": 23,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  },
+  "Qual a relação entre pensamento criativo e inteligência geral ou desempenho acadêmico?": {
+    "answer": "O material fornecido não detalha analiticamente os mecanismos nem as conclusões empíricas sobre a relação entre o pensamento criativo, a inteligência geral e o rendimento escolar. O texto limita-se a listar fontes bibliográficas de referência dedicadas à investigação dessas conexões na literatura especializada [C193, C201].\n\nEspecificamente, constam no referencial:\n\n* O estudo de Batey e Furnham (2006), focado na revisão da literatura sobre criatividade, inteligência e personalidade (*\"Creativity, intelligence, and personality: a critical review of the scattered literature\"*) [C193, C194].\n* A meta-análise de Gajda, Karwowski e Beghetto (2017), que investiga as relações entre criatividade e desempenho acadêmico (*\"Creativity and academic achievement: A meta-analysis\"*) [C201].\n\nNão há, nos trechos disponibilizados, dados ou discussões teóricas adicionais sobre a magnitude ou a natureza dessa associação.",
+    "hits": [
+      {
+        "id": "C208",
+        "page": 52,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C201",
+        "page": 50,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C111",
+        "page": 26,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C193",
+        "page": 48,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C138",
+        "page": 32,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C194",
+        "page": 48,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  },
+  "Como é construído o modelo de design centrado em evidências (Evidence-Centred Design) no PISA?": {
+    "answer": "O modelo de design centrado em evidências (*Evidence-Centred Design* - ECD) é utilizado no PISA como uma estrutura conceitual para desenvolver avaliações coerentes e fundamentadas em argumentos, conectando as ações, produções escritas e criações dos estudantes em uma plataforma computacional a competências multidimensionais [C21]. Sua premissa básica estabelece a avaliação como um processo de raciocínio a partir de evidências para avaliar afirmações específicas sobre as capacidades dos alunos, exigindo conexões documentadas e explícitas entre o objetivo do teste, as afirmações feitas e as evidências que as sustentam [C21, C22].\n\nA construção do modelo no PISA estrutura-se em uma sequência de etapas interligadas e iterativas:\n\n* **Modelo de Competência ou do Estudante (*Student Model*):** Etapa voltada à definição das competências avaliadas [C24].\n* **Identificação de Evidências (*Evidence Model*):** Descrição das evidências que o teste precisa gerar para sustentar as afirmações sobre os estudantes, abrangendo os comportamentos e desempenhos observáveis (como selecionar, escrever ou produzir) [C24]. Inclui a formulação de regras para pontuação das tarefas, agregação de pontuações e extração de dados de processo armazenados em arquivos de registro (*log files*) [C24].\n* **Desenho de Tarefas (*Task Model*):** Identificação, conceitualização e prototipagem de tarefas capazes de fornecer as evidências desejadas, respeitando as restrições da avaliação do PISA [C24, C25].\n* **Desenvolvimento do Teste (*Assembly Model*):** Montagem das tarefas em formatos de teste que sustentem todas as afirmações avaliativas com evidências suficientes [C25].\n* **Validação Transcultural (*Cross-cultural validation*):** Etapa enfatizada no PISA para assegurar que todos os instrumentos gerem evidências confiáveis e comparáveis entre diferentes países e grupos culturais, aspecto geralmente não contemplado nas abordagens clássicas de ECD [C26].\n* **Análise e Relatórios (*Analysis and reporting*):** Elaboração de representações apropriadas, significativas e de fácil comunicação para os resultados da avaliação [C26].\n\nEsse ciclo de design possui caráter iterativo, no qual estudos-piloto e dados de validação alimentam e refinam diretamente as decisões relativas à identificação de evidências e ao desenho das tarefas [C26]. Ao mesmo tempo, análises psicométricas estabelecem a suficiência das evidências obtidas [C21], garantindo a comparabilidade dos dados e a consistência dos métodos de pontuação entre os diferentes participantes [C22].",
+    "hits": [
+      {
+        "id": "C24",
+        "page": 7,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C21",
+        "page": 7,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C26",
+        "page": 8,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C22",
+        "page": 7,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C25",
+        "page": 7,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C2",
+        "page": 3,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  },
+  "Como são os questionários de contexto para estudantes, professores e diretores de escolas?": {
+    "answer": "Os questionários de contexto voltados a estudantes, professores e diretores escolares destinam-se a levantar dados sobre a prática de atividades criativas curriculares e extracurriculares, as relações interpessoais e o ambiente escolar mais amplo [C188, C189]. \n\nEm relação aos tópicos abordados por esses instrumentos:\n\n* **Questionário do estudante:** reúne informações sobre a frequência e o tipo de atividades escolares que podem contribuir para a prontidão e disposição dos alunos em diferentes áreas criativas, tais como escrita criativa, poesia, pintura, experimentação científica, debate de questões sociais e criação ou *design* (*tinkering*) [C188]. O questionário também contempla as vivências dos alunos fora da escola [C188], além de questões adicionais sobre outros contextos sociais importantes para adolescentes de 15 anos, como a família e o grupo de colegas [C189].\n* **Questionários de professores e diretores:** verificam de que maneira as atividades criativas estão integradas ao currículo oficial e às atividades realizadas no contraturno ou tempo extracurricular [C188].\n* **Ambiente social e interação pedagógica (comum aos questionários):** todos os três instrumentos colhem dados sobre o ambiente social e as interações entre estudantes e docentes, avaliando se os estudantes se sentem incentivados a se expressar livremente e se consideram que os professores levam suas ideias e propostas a sério [C188, C189]. Além disso, investigam a cultura geral da escola (*school ethos*) e a influência da motivação extrínseca na criatividade, englobando a percepção discente acerca de disciplina, limitações de tempo e avaliações [C189].",
+    "hits": [
+      {
+        "id": "C189",
+        "page": 46,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C188",
+        "page": 46,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C122",
+        "page": 28,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C43",
+        "page": 11,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C222",
+        "page": 56,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C167",
+        "page": 41,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  },
+  "Quais são os níveis de proficiência e como os resultados do teste de pensamento criativo são reportados?": {
+    "answer": "A documentação fornecida não detalha os níveis específicos de proficiência (como faixas de pontuação ou descritores de níveis graduados), mas estipula que o desenvolvimento de escalas de proficiência visa comunicar os resultados de maneira interpretável para políticas educacionais, informando as partes interessadas de cada país sobre o desempenho dos alunos no pensamento criativo [C176].\n\nQuanto ao formato de reporte dos resultados, o documento apresenta duas abordagens:\n\n* **Escala unidimensional única:** Em geral, os resultados das avaliações do PISA são divulgados por meio de uma escala única e unidimensional [C176]. A vantagem desse método reside no direcionamento de todo o material do teste para a geração de uma pontuação consolidada, que se apoia em uma grande quantidade de respostas e garante alta confiabilidade para comparar diferenças entre países ou subpopulações de estudantes [C176].\n* **Múltiplos indicadores:** Como alternativa à escala única, podem ser derivados múltiplos indicadores (subescalas) capazes de traçar um perfil diferenciado dos pontos fortes e das fragilidades no desempenho discente em cada país [C176].",
+    "hits": [
+      {
+        "id": "C120",
+        "page": 28,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C111",
+        "page": 26,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C82",
+        "page": 19,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C160",
+        "page": 40,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C113",
+        "page": 26,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      },
+      {
+        "id": "C176",
+        "page": 43,
+        "doc": "PISA_2021_Creative_Thinking_Framework"
+      }
+    ]
+  }
+}

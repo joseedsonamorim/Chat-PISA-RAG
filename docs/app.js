@@ -3,12 +3,19 @@
  * Copyright (c) 2026 José Edson Sebastião. PPGIA/UFRPE. All rights reserved
  * under the MIT License (see LICENSE). Source documents remain the property
  * of the OECD and are cited, not relicensed.
+ *
+ * Arquitetura Zero-Key (100% sem pedido de chave ao visitante):
+ *   1. Se o servidor local (`scripts/serve_local.py`) ou `PROXY_URL` estiver
+ *      ativo, utiliza a API Gemini transparente via proxy.
+ *   2. No GitHub Pages estático (sem proxy), responde instantaneamente usando:
+ *      (a) Correspondência semântica na base RAG pré-computada (`precomputed_qa.json`,
+ *          gerada com `gemini-embedding-001` + `gemini-flash-latest`), ou
+ *      (b) Recuperação BM25 bilíngue (PT->EN) sobre os 224 trechos + síntese
+ *          documental estruturada com citações [Cxx], sem nunca pedir API Key.
  */
 "use strict";
 
-const DIRECT_API = "https://generativelanguage.googleapis.com/v1beta/models/";
 const PROXY_URL = "";
-
 const GEN_MODEL = "gemini-flash-latest";
 const TOP_K = 6;
 const CANDIDATES = 30;
@@ -30,7 +37,39 @@ Rigor documental (obrigatório):
 
 const REWRITE = `Reescreva a ÚLTIMA pergunta do usuário como uma consulta autônoma e completa para busca documental, resolvendo pronomes a partir do histórico. Mantenha o idioma original e responda APENAS com a pergunta reescrita.`;
 
+// Expansão bilíngue PT -> EN para consultas livres em português sobre o manual em inglês
+const PT_EN_MAP = {
+  criativo: ["creative", "creativity"],
+  criatividade: ["creative", "creativity"],
+  pensamento: ["thinking", "cognitive"],
+  faceta: ["facet", "facets", "competency"],
+  facetas: ["facets", "facet", "competency"],
+  dominio: ["domain", "domains"],
+  dominios: ["domains", "domain"],
+  visual: ["visual", "design", "drawing"],
+  escrita: ["written", "writing", "story"],
+  cientifico: ["scientific", "science"],
+  social: ["social", "interpersonal"],
+  pontuacao: ["scoring", "score", "coding", "rubric", "criteria"],
+  pontuadas: ["scoring", "scored", "coding", "criteria"],
+  avaliacao: ["assessment", "test", "evaluating", "evaluate"],
+  avaliadas: ["assessed", "assessment", "evaluate"],
+  ideias: ["ideas", "idea", "generation"],
+  diversas: ["diverse", "divergent", "fluency", "flexibility"],
+  original: ["original", "originality", "novel"],
+  escola: ["school", "schools", "climate", "environment"],
+  professor: ["teacher", "teachers", "pedagogy", "teaching"],
+  professores: ["teachers", "teacher", "pedagogy"],
+  atitude: ["attitude", "attitudes", "dispositions", "openness"],
+  atitudes: ["attitudes", "openness", "self", "efficacy"],
+  autoeficacia: ["efficacy", "self", "confidence"],
+  inteligencia: ["intelligence", "general", "academic"],
+  questionario: ["questionnaire", "questionnaires", "background"],
+  proficiencia: ["proficiency", "scale", "levels", "reporting"],
+};
+
 let INDEX = null;
+let PRECOMPUTED = {};
 let IDF = {};
 let LOCAL_PROXY = false;
 let ACTIVE_DOC = "";
@@ -43,6 +82,15 @@ const tok = (s) =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").match(/[a-z0-9]+/g) || [];
 const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+function expandBilingualTokens(q) {
+  const base = tok(q);
+  const expanded = [...base];
+  base.forEach((t) => {
+    if (PT_EN_MAP[t]) expanded.push(...PT_EN_MAP[t]);
+  });
+  return expanded;
+}
+
 /** Limpa quebras de linha artificiais do PDF para leitura editorial fluida. */
 function cleanPdfProse(raw) {
   return raw
@@ -54,10 +102,6 @@ function cleanPdfProse(raw) {
     .trim();
 }
 
-async function errMsg(r) {
-  try { return (await r.json()).error.message; } catch { return `HTTP ${r.status}`; }
-}
-
 async function detectConnection() {
   try {
     const r = await fetch("/api/status");
@@ -65,50 +109,37 @@ async function detectConnection() {
       const j = await r.json();
       if (j.proxy) LOCAL_PROXY = true;
     }
-  } catch { /* modo estático */ }
-  updateConnectionStatus();
+  } catch { /* modo GitHub Pages estático */ }
 }
 
-function updateConnectionStatus() {
-  const key = localStorage.getItem("gemini_key");
-  const el = $("conn-status");
-  if (!el) return;
-  if (LOCAL_PROXY) {
-    el.textContent = "Conectado ao servidor local (chave carregada do ambiente).";
-  } else if (PROXY_URL) {
-    el.textContent = "Conectado via proxy institucional.";
-  } else if (key) {
-    el.textContent = "Conectado com a chave salva neste navegador.";
-  } else {
-    el.textContent = "Modo estático (GitHub Pages): informe uma chave AIzaSy... do Google AI Studio abaixo.";
-  }
+function hasLiveBackend() {
+  return Boolean(LOCAL_PROXY || PROXY_URL);
 }
 
 async function callGeminiEndpoint(action, body) {
-  const key = localStorage.getItem("gemini_key");
-  let url = "";
-  const headers = { "Content-Type": "application/json" };
-
-  if (LOCAL_PROXY && !key) {
-    url = `/api/gemini/${action}`;
-  } else if (PROXY_URL && !key) {
-    url = `${PROXY_URL.replace(/\/+$/, "")}/${action}`;
-  } else if (key) {
-    url = `${DIRECT_API}${action}`;
-    headers["x-goog-api-key"] = key;
-  } else {
-    $("settings-modal").showModal();
-    throw new Error("Configure uma chave do Google AI Studio no ícone de engrenagem no topo.");
-  }
-
-  const r = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
-  if (!r.ok) throw new Error(await errMsg(r));
+  const url = LOCAL_PROXY
+    ? `/api/gemini/${action}`
+    : `${PROXY_URL.replace(/\/+$/, "")}/${action}`;
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r;
 }
 
 /* ---------- Índice e Leitor Editorial ---------- */
 async function loadIndex() {
-  INDEX = await (await fetch("index.json")).json();
+  const [idxRes, qaRes] = await Promise.all([
+    fetch("index.json"),
+    fetch("precomputed_qa.json").catch(() => null),
+  ]);
+  INDEX = await idxRes.json();
+  if (qaRes && qaRes.ok) {
+    PRECOMPUTED = await qaRes.json();
+  }
+
   const df = {};
   INDEX.chunks.forEach((c) => {
     c.tf = {};
@@ -194,14 +225,63 @@ function focusChunkInManual(chunkId) {
   }
 }
 
-/* ---------- Recuperação Híbrida ---------- */
+/* ---------- Recuperação Híbrida e Motor Zero-Key ---------- */
 function bm25(q, c) {
   let s = 0;
-  for (const t of new Set(tok(q))) {
+  for (const t of new Set(expandBilingualTokens(q))) {
     const f = c.tf[t];
     if (f) s += IDF[t] * ((f * 2.2) / (f + 1.2 * (0.25 + 0.75 * (c.len / INDEX.avg))));
   }
   return s;
+}
+
+function retrieveSparseBilingual(q) {
+  return INDEX.chunks
+    .map((c) => [c, bm25(q, c)])
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, TOP_K)
+    .map(([c]) => c);
+}
+
+/** Procura resposta pré-computada na base RAG com alta sobreposição de termos. */
+function findPrecomputedMatch(q) {
+  if (PRECOMPUTED[q]) return PRECOMPUTED[q];
+  const STOP = new Set(["como", "quais", "qual", "que", "sao", "para", "pelo", "pela", "dos", "das", "uma", "por", "pisa", "teste", "manual"]);
+  const qTokens = new Set(tok(q).filter((w) => w.length > 2 && !STOP.has(w)));
+  if (!qTokens.size) return null;
+
+  let best = null;
+  let bestScore = 0;
+  for (const [cachedQ, entry] of Object.entries(PRECOMPUTED)) {
+    const cTokens = new Set(tok(cachedQ).filter((w) => w.length > 2 && !STOP.has(w)));
+    let inter = 0;
+    qTokens.forEach((t) => { if (cTokens.has(t)) inter++; });
+    const score = inter / Math.max(1, Math.min(qTokens.size, cTokens.size));
+    if (inter >= 2 && score > bestScore) {
+      bestScore = score;
+      best = entry;
+    }
+  }
+  return bestScore >= 0.55 ? best : null;
+}
+
+/** Síntese documental local caso o usuário digite uma pergunta inédita no modo estático. */
+function buildStaticSynthesis(q, hits) {
+  const top = hits.slice(0, 3);
+  if (!top.length || bm25(q, top[0]) === 0) {
+    return `Não foram localizadas passagens específicas sobre esse termo nas páginas indexadas do manual. Consulte os tópicos principais ou utilize o campo de busca na coluna ao lado para filtrar termos diretamente no texto.`;
+  }
+  const lines = [
+    `Nas páginas do *PISA 2021 Creative Thinking Framework (Third Draft)*, as passagens mais diretamente relacionadas à sua consulta encontram-se nas referências [${top.map((c) => c.id).join(", ")}]:`,
+  ];
+  top.forEach((c) => {
+    const snippet = cleanPdfProse(c.text).split(/(?<=[.?!])\s+/).slice(0, 2).join(" ");
+    lines.push(`* **Página ${c.page}** [${c.id}]: "${snippet}"`);
+  });
+  lines.push(
+    `Clique em qualquer uma das referências acima (${top.map((c) => `[${c.id}]`).join(" ")}) para ler o parágrafo integral na coluna ao lado.`
+  );
+  return lines.join("\n");
 }
 
 async function embedQuery(text) {
@@ -274,6 +354,18 @@ async function generateStream(q, hits, onText) {
   return full || "(sem resposta)";
 }
 
+/** Efeito de streaming suave para respostas da base pré-computada. */
+async function streamTextLocally(fullText, onText) {
+  const words = fullText.split(" ");
+  let acc = "";
+  for (let i = 0; i < words.length; i += 4) {
+    acc += (i ? " " : "") + words.slice(i, i + 4).join(" ");
+    onText(acc);
+    await new Promise((r) => setTimeout(r, 18));
+  }
+  onText(fullText);
+}
+
 /* ---------- Renderização ---------- */
 function fmt(text) {
   const inline = (t) => esc(t)
@@ -329,21 +421,49 @@ function addSources(el, hits, answer) {
   el.append(box);
 }
 
-/* ---------- Fluxo de Consulta ---------- */
+/* ---------- Fluxo de Consulta (Zero-Key) ---------- */
 async function ask(q) {
   add("user", q);
   const out = add("bot thinking", "Localizando passagens no manual…");
   $("send").disabled = true;
   try {
-    const standalone = await condense(q);
-    const hits = await retrieve(standalone);
-    LAST_RETRIEVED = new Set(hits.map((c) => c.id));
-    renderManual($("manual-filter").value);
+    let hits = [];
+    let ans = "";
 
-    const ans = await generateStream(q, hits, (t) => {
+    // 1. Verifica primeiro se há correspondência exata/semântica na base pré-computada
+    const cached = findPrecomputedMatch(q);
+    if (cached && !hasLiveBackend()) {
+      const hitMap = new Map(INDEX.chunks.map((c) => [c.id, c]));
+      hits = cached.hits.map((h) => hitMap.get(h.id)).filter(Boolean);
+      ans = cached.answer;
+      LAST_RETRIEVED = new Set(hits.map((c) => c.id));
+      renderManual($("manual-filter").value);
       out.classList.remove("thinking");
-      out.innerHTML = fmt(t);
-    });
+      await streamTextLocally(ans, (partial) => {
+        out.innerHTML = fmt(partial);
+      });
+    } else if (hasLiveBackend()) {
+      // 2. Servidor local ou Proxy Serverless ativo
+      const standalone = await condense(q);
+      hits = await retrieve(standalone);
+      LAST_RETRIEVED = new Set(hits.map((c) => c.id));
+      renderManual($("manual-filter").value);
+      ans = await generateStream(q, hits, (t) => {
+        out.classList.remove("thinking");
+        out.innerHTML = fmt(t);
+      });
+    } else {
+      // 3. Consulta livre no GitHub Pages estático: busca BM25 bilíngue + síntese documental
+      hits = retrieveSparseBilingual(q);
+      ans = buildStaticSynthesis(q, hits);
+      LAST_RETRIEVED = new Set(hits.map((c) => c.id));
+      renderManual($("manual-filter").value);
+      out.classList.remove("thinking");
+      await streamTextLocally(ans, (partial) => {
+        out.innerHTML = fmt(partial);
+      });
+    }
+
     out.innerHTML = fmt(ans);
     addSources(out, hits, ans);
     history.push({ q, a: ans });
@@ -363,6 +483,8 @@ const EXAMPLES = [
   "Como o PISA define pensamento criativo e quais são as três facetas avaliadas?",
   "Quais são os quatro domínios de aplicação das tarefas no teste?",
   "Como funcionam os critérios de pontuação para respostas abertas de expressão visual?",
+  "Qual a relação entre pensamento criativo, práticas de professores e fatores escolares no PISA?",
+  "Qual o papel de atitudes como abertura ao intelecto (openness) e autoeficácia criativa?",
 ];
 
 EXAMPLES.forEach((t) => {
@@ -394,20 +516,6 @@ $("reset").onclick = () => {
 $("open-about").onclick = () => $("about-modal").showModal();
 $("close-about").onclick = () => $("about-modal").close();
 $("about-modal").onclick = (e) => { if (e.target === $("about-modal")) $("about-modal").close(); };
-
-$("open-settings").onclick = () => { updateConnectionStatus(); $("settings-modal").showModal(); };
-$("close-settings").onclick = () => $("settings-modal").close();
-$("settings-modal").onclick = (e) => { if (e.target === $("settings-modal")) $("settings-modal").close(); };
-
-$("savekey").onclick = () => {
-  const v = $("key").value.trim();
-  if (v) { localStorage.setItem("gemini_key", v); $("key").value = ""; updateConnectionStatus(); $("settings-modal").close(); }
-};
-$("forget").onclick = () => {
-  localStorage.removeItem("gemini_key");
-  $("key").value = "";
-  updateConnectionStatus();
-};
 
 $("form").onsubmit = (e) => {
   e.preventDefault();
