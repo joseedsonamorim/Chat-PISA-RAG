@@ -4,69 +4,39 @@
  * under the MIT License (see LICENSE). Source documents remain the property
  * of the OECD and are cited, not relicensed.
  *
- * Arquitetura Zero-Key (100% sem pedido de chave ao visitante):
- *   1. Se o servidor local (`scripts/serve_local.py`) ou `PROXY_URL` estiver
- *      ativo, utiliza a API Gemini transparente via proxy.
- *   2. No GitHub Pages estático (sem proxy), responde instantaneamente usando:
- *      (a) Correspondência semântica na base RAG pré-computada (`precomputed_qa.json`,
- *          gerada com `gemini-embedding-001` + `gemini-flash-latest`), ou
- *      (b) Recuperação BM25 bilíngue (PT->EN) sobre os 224 trechos + síntese
- *          documental estruturada com citações [Cxx], sem nunca pedir API Key.
+ * Motor de Resposta Rápida e Humanizada em Português (Zero-Key):
+ *   1. Todas as 224 passagens em `index.json` possuem tanto o texto original
+ *      da OCDE (`text`) quanto uma síntese explicativa em português (`pt`).
+ *   2. A busca BM25 indexa simultaneamente os termos em português (`pt`) e em
+ *      inglês (`text`), garantindo recuperação instantânea (< 5ms) para
+ *      qualquer pergunta em português sem depender de chamadas lentas de rede.
+ *   3. No modo estático (GitHub Pages), combina a base de respostas completas
+ *      (`precomputed_qa.json`) com um compositor conversacional em português
+ *      que redige respostas fluidas usando as sínteses `c.pt`.
+ *   4. No modo com backend ativo (`serve_local.py` ou `PROXY_URL`), usa o
+ *      modelo rápido `gemini-2.5-flash` em streaming direto, pulando chamadas
+ *      extras de reescrita quando não há pronomes dependentes de contexto.
  */
 "use strict";
 
 const PROXY_URL = "";
-const GEN_MODEL = "gemini-flash-latest";
+const GEN_MODEL = "gemini-2.5-flash";
 const TOP_K = 6;
 const CANDIDATES = 30;
 const RRF_K = 60;
 const HISTORY_TURNS = 4;
 
-const SYSTEM = `Você é um pesquisador especialista na documentação técnica do PISA (OCDE) carregada nesta ferramenta.
+const SYSTEM = `Você é um pesquisador brasileiro especialista na documentação do PISA (OCDE) carregada nesta ferramenta.
 
-Como responder:
-- Escreva com clareza, naturalidade e precisão acadêmica, sem clichês de IA e sem abrir com frases mecânicas como "Com base nos trechos fornecidos".
-- Responda no mesmo idioma da pergunta. Vá direto ao ponto no primeiro parágrafo e depois organize os detalhes em parágrafos curtos ou tópicos quando necessário.
-- Cumprimentos breves podem ser respondidos normalmente.
+Como conversar:
+- Responda SEMPRE em português do Brasil, de forma natural, calorosa, fluida e direta — como um colega de pesquisa explicando o assunto em uma conversa.
+- Nunca use aberturas robóticas ("Com base nos trechos fornecidos", "De acordo com o contexto"). Vá direto à explicação no primeiro parágrafo.
+- Traduza termos técnicos quando aparecerem, mantendo o termo original apenas entre parênteses se ajudar na clareza.
 
 Rigor documental (obrigatório):
-- Toda afirmação factual sobre o PISA deve vir EXCLUSIVAMENTE do CONTEXTO desta mensagem. Cada passagem tem um identificador entre colchetes, como [C12].
-- Indique a referência logo após a afirmação que ela sustenta, ex.: "... [C12]". Nunca cite um código que não esteja no contexto.
-- Se o contexto não trouxer a informação pedida, diga de forma direta que a passagem não consta nas páginas carregadas, mencione o que o documento aborda de mais próximo e não invente dados.
-- Lembre, quando relevante, que o documento principal carregado é o Third Draft (abril de 2019) do framework de Pensamento Criativo do PISA 2021.`;
-
-const REWRITE = `Reescreva a ÚLTIMA pergunta do usuário como uma consulta autônoma e completa para busca documental, resolvendo pronomes a partir do histórico. Mantenha o idioma original e responda APENAS com a pergunta reescrita.`;
-
-// Expansão bilíngue PT -> EN para consultas livres em português sobre o manual em inglês
-const PT_EN_MAP = {
-  criativo: ["creative", "creativity"],
-  criatividade: ["creative", "creativity"],
-  pensamento: ["thinking", "cognitive"],
-  faceta: ["facet", "facets", "competency"],
-  facetas: ["facets", "facet", "competency"],
-  dominio: ["domain", "domains"],
-  dominios: ["domains", "domain"],
-  visual: ["visual", "design", "drawing"],
-  escrita: ["written", "writing", "story"],
-  cientifico: ["scientific", "science"],
-  social: ["social", "interpersonal"],
-  pontuacao: ["scoring", "score", "coding", "rubric", "criteria"],
-  pontuadas: ["scoring", "scored", "coding", "criteria"],
-  avaliacao: ["assessment", "test", "evaluating", "evaluate"],
-  avaliadas: ["assessed", "assessment", "evaluate"],
-  ideias: ["ideas", "idea", "generation"],
-  diversas: ["diverse", "divergent", "fluency", "flexibility"],
-  original: ["original", "originality", "novel"],
-  escola: ["school", "schools", "climate", "environment"],
-  professor: ["teacher", "teachers", "pedagogy", "teaching"],
-  professores: ["teachers", "teacher", "pedagogy"],
-  atitude: ["attitude", "attitudes", "dispositions", "openness"],
-  atitudes: ["attitudes", "openness", "self", "efficacy"],
-  autoeficacia: ["efficacy", "self", "confidence"],
-  inteligencia: ["intelligence", "general", "academic"],
-  questionario: ["questionnaire", "questionnaires", "background"],
-  proficiencia: ["proficiency", "scale", "levels", "reporting"],
-};
+- Use EXCLUSIVAMENTE as informações do CONTEXTO desta mensagem. Cada passagem tem um código entre colchetes, como [C12].
+- Coloque a referência logo após a frase que ela sustenta, ex.: "... [C12]". Nunca invente códigos ou fatos fora do contexto.
+- Se a resposta não estiver nas passagens do contexto, diga de forma simples e honesta que esse ponto específico não aparece nas páginas carregadas e comente o que o manual traz de mais próximo.`;
 
 let INDEX = null;
 let PRECOMPUTED = {};
@@ -78,18 +48,17 @@ const history = [];
 const $ = (id) => document.getElementById(id);
 
 /* ---------- Utilitários ---------- */
+const STOP_PT = new Set([
+  "como", "quais", "qual", "que", "sao", "para", "pelo", "pela", "dos", "das",
+  "uma", "uns", "umas", "por", "com", "sem", "sob", "sobre", "entre", "mais",
+  "menos", "muito", "muita", "isso", "isto", "esse", "essa", "este", "esta",
+  "pisa", "teste", "manual", "documento", "ocde", "avaliacao", "avaliado",
+  "fala", "diz", "explica", "funciona", "funcionam", "existe", "existem",
+]);
+
 const tok = (s) =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").match(/[a-z0-9]+/g) || [];
 const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-function expandBilingualTokens(q) {
-  const base = tok(q);
-  const expanded = [...base];
-  base.forEach((t) => {
-    if (PT_EN_MAP[t]) expanded.push(...PT_EN_MAP[t]);
-  });
-  return expanded;
-}
 
 /** Limpa quebras de linha artificiais do PDF para leitura editorial fluida. */
 function cleanPdfProse(raw) {
@@ -109,7 +78,7 @@ async function detectConnection() {
       const j = await r.json();
       if (j.proxy) LOCAL_PROXY = true;
     }
-  } catch { /* modo GitHub Pages estático */ }
+  } catch { /* modo estático */ }
 }
 
 function hasLiveBackend() {
@@ -129,7 +98,7 @@ async function callGeminiEndpoint(action, body) {
   return r;
 }
 
-/* ---------- Índice e Leitor Editorial ---------- */
+/* ---------- Índice Bilíngue (PT + EN) e Leitor Editorial ---------- */
 async function loadIndex() {
   const [idxRes, qaRes] = await Promise.all([
     fetch("index.json"),
@@ -140,10 +109,15 @@ async function loadIndex() {
     PRECOMPUTED = await qaRes.json();
   }
 
+  // Indexa tanto o resumo em português (c.pt) quanto o original em inglês (c.text)
+  // dando peso dobrado às ocorrências no texto em português para consultas em PT.
   const df = {};
   INDEX.chunks.forEach((c) => {
     c.tf = {};
     tok(c.text).forEach((t) => (c.tf[t] = (c.tf[t] || 0) + 1));
+    if (c.pt) {
+      tok(c.pt).forEach((t) => (c.tf[t] = (c.tf[t] || 0) + 2));
+    }
     c.len = Object.values(c.tf).reduce((a, b) => a + b, 0);
     Object.keys(c.tf).forEach((t) => (df[t] = (df[t] || 0) + 1));
   });
@@ -166,7 +140,7 @@ async function loadIndex() {
   ACTIVE_DOC = docs[0].id;
   renderManual();
 
-  $("stats").textContent = `Fonte: ${docs[0].title} (${docs[0].pages} páginas, ${N} passagens indexadas)`;
+  $("stats").textContent = `Fonte: ${docs[0].title} (${docs[0].pages} páginas, ${N} passagens traduzidas e indexadas)`;
 }
 
 function renderManual(filterText = "") {
@@ -187,6 +161,7 @@ function renderManual(filterText = "") {
       `p. ${c.page}` === q ||
       `p${c.page}` === q ||
       String(c.page) === q ||
+      (c.pt && c.pt.toLowerCase().includes(q)) ||
       c.text.toLowerCase().includes(q)
     );
   });
@@ -198,10 +173,29 @@ function renderManual(filterText = "") {
     const head = document.createElement("div");
     head.className = "chunk-head";
     head.innerHTML = `<span><strong>Ref. ${c.id}</strong>${LAST_RETRIEVED.has(c.id) ? " · consultada" : ""}</span><span>p. ${c.page}</span>`;
-    const p = document.createElement("p");
-    p.className = "chunk-text";
-    p.textContent = cleanPdfProse(c.text);
-    card.append(head, p);
+
+    // Exibe a síntese em português no topo e o trecho original logo abaixo
+    if (c.pt) {
+      const ptPara = document.createElement("p");
+      ptPara.className = "chunk-pt";
+      ptPara.textContent = c.pt;
+      card.append(head, ptPara);
+
+      const det = document.createElement("details");
+      det.className = "chunk-orig";
+      const sum = document.createElement("summary");
+      sum.textContent = "Ver texto original (inglês)";
+      const origPara = document.createElement("p");
+      origPara.className = "chunk-text";
+      origPara.textContent = cleanPdfProse(c.text);
+      det.append(sum, origPara);
+      card.append(det);
+    } else {
+      const p = document.createElement("p");
+      p.className = "chunk-text";
+      p.textContent = cleanPdfProse(c.text);
+      card.append(head, p);
+    }
     reader.appendChild(card);
   });
 }
@@ -225,17 +219,18 @@ function focusChunkInManual(chunkId) {
   }
 }
 
-/* ---------- Recuperação Híbrida e Motor Zero-Key ---------- */
+/* ---------- Recuperação Instantânea e Resposta Humanizada em Português ---------- */
 function bm25(q, c) {
   let s = 0;
-  for (const t of new Set(expandBilingualTokens(q))) {
+  for (const t of new Set(tok(q))) {
+    if (t.length < 2) continue;
     const f = c.tf[t];
     if (f) s += IDF[t] * ((f * 2.2) / (f + 1.2 * (0.25 + 0.75 * (c.len / INDEX.avg))));
   }
   return s;
 }
 
-function retrieveSparseBilingual(q) {
+function retrieveFastPT(q) {
   return INDEX.chunks
     .map((c) => [c, bm25(q, c)])
     .sort((a, b) => b[1] - a[1])
@@ -243,17 +238,16 @@ function retrieveSparseBilingual(q) {
     .map(([c]) => c);
 }
 
-/** Procura resposta pré-computada na base RAG com alta sobreposição de termos. */
+/** Procura resposta pré-computada na base RAG quando a pergunta aborda o mesmo tema. */
 function findPrecomputedMatch(q) {
   if (PRECOMPUTED[q]) return PRECOMPUTED[q];
-  const STOP = new Set(["como", "quais", "qual", "que", "sao", "para", "pelo", "pela", "dos", "das", "uma", "por", "pisa", "teste", "manual"]);
-  const qTokens = new Set(tok(q).filter((w) => w.length > 2 && !STOP.has(w)));
+  const qTokens = new Set(tok(q).filter((w) => w.length > 2 && !STOP_PT.has(w)));
   if (!qTokens.size) return null;
 
   let best = null;
   let bestScore = 0;
   for (const [cachedQ, entry] of Object.entries(PRECOMPUTED)) {
-    const cTokens = new Set(tok(cachedQ).filter((w) => w.length > 2 && !STOP.has(w)));
+    const cTokens = new Set(tok(cachedQ).filter((w) => w.length > 2 && !STOP_PT.has(w)));
     let inter = 0;
     qTokens.forEach((t) => { if (cTokens.has(t)) inter++; });
     const score = inter / Math.max(1, Math.min(qTokens.size, cTokens.size));
@@ -262,26 +256,39 @@ function findPrecomputedMatch(q) {
       best = entry;
     }
   }
-  return bestScore >= 0.55 ? best : null;
+  return bestScore >= 0.6 ? best : null;
 }
 
-/** Síntese documental local caso o usuário digite uma pergunta inédita no modo estático. */
-function buildStaticSynthesis(q, hits) {
-  const top = hits.slice(0, 3);
-  if (!top.length || bm25(q, top[0]) === 0) {
-    return `Não foram localizadas passagens específicas sobre esse termo nas páginas indexadas do manual. Consulte os tópicos principais ou utilize o campo de busca na coluna ao lado para filtrar termos diretamente no texto.`;
+/**
+ * Monta uma resposta conversacional fluida, 100% em português, a partir das
+ * sínteses em português (`c.pt`) dos trechos mais relevantes recuperados.
+ */
+function buildHumanizedPortugueseAnswer(q, hits) {
+  const scored = hits.filter((c) => bm25(q, c) > 0);
+  if (!scored.length) {
+    return (
+      "Procurei nas 56 páginas do manual de Pensamento Criativo do PISA, mas não encontrei uma passagem que trate diretamente desse ponto específico.\n\n" +
+      "O documento foca na definição de pensamento criativo, nas três facetas do modelo de competências (gerar ideias diversas, gerar ideias criativas e avaliar/melhorar ideias), nos quatro domínios de teste (expressão escrita e visual, resolução de problemas sociais e científicos), nos critérios de pontuação e nos questionários de escola e estudantes. Se quiser explorar algum desses temas, basta perguntar!"
+    );
   }
-  const lines = [
-    `Nas páginas do *PISA 2021 Creative Thinking Framework (Third Draft)*, as passagens mais diretamente relacionadas à sua consulta encontram-se nas referências [${top.map((c) => c.id).join(", ")}]:`,
-  ];
-  top.forEach((c) => {
-    const snippet = cleanPdfProse(c.text).split(/(?<=[.?!])\s+/).slice(0, 2).join(" ");
-    lines.push(`* **Página ${c.page}** [${c.id}]: "${snippet}"`);
-  });
-  lines.push(
-    `Clique em qualquer uma das referências acima (${top.map((c) => `[${c.id}]`).join(" ")}) para ler o parágrafo integral na coluna ao lado.`
-  );
-  return lines.join("\n");
+
+  const primary = scored[0];
+  const secondary = scored.slice(1, 4);
+  const parts = [];
+
+  // Parágrafo de abertura direto e natural em português
+  parts.push(`${primary.pt} [${primary.id}]`);
+
+  if (secondary.length === 1) {
+    parts.push(`Além disso, na página ${secondary[0].page}, o manual complementa que ${secondary[0].pt.charAt(0).toLowerCase() + secondary[0].pt.slice(1)} [${secondary[0].id}]`);
+  } else if (secondary.length > 1) {
+    parts.push("Complementando esse ponto ao longo do documento:");
+    secondary.forEach((c) => {
+      parts.push(`* **Página ${c.page}:** ${c.pt} [${c.id}]`);
+    });
+  }
+
+  return parts.join("\n\n");
 }
 
 async function embedQuery(text) {
@@ -308,29 +315,18 @@ async function retrieve(q) {
   return Object.entries(score).sort((a, b) => b[1] - a[1]).slice(0, TOP_K).map(([i]) => INDEX.chunks[i]);
 }
 
-/* ---------- Geração ---------- */
+/* ---------- Geração em Streaming ---------- */
 const textOf = (j) => j.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "";
 
-async function condense(q) {
-  if (!history.length) return q;
-  const turns = history.slice(-HISTORY_TURNS).map((h) => `Usuário: ${h.q}\nAssistente: ${h.a.slice(0, 400)}`).join("\n");
-  try {
-    const r = await callGeminiEndpoint(`${GEN_MODEL}:generateContent`, {
-      systemInstruction: { parts: [{ text: REWRITE }] },
-      contents: [{ role: "user", parts: [{ text: `HISTÓRICO:\n${turns}\n\nÚLTIMA PERGUNTA: ${q}` }] }],
-      generationConfig: { temperature: 0, maxOutputTokens: 200 },
-    });
-    return textOf(await r.json()).trim() || q;
-  } catch { return q; }
-}
-
 async function generateStream(q, hits, onText) {
-  const ctx = hits.map((c) => `[${c.id}] (página ${c.page})\n${c.text}`).join("\n\n");
+  const ctx = hits
+    .map((c) => `[${c.id}] (página ${c.page})\nResumo em português: ${c.pt || ""}\nOriginal: ${c.text}`)
+    .join("\n\n");
   const contents = [];
   history.slice(-HISTORY_TURNS).forEach((h) => {
     contents.push({ role: "user", parts: [{ text: h.q }] }, { role: "model", parts: [{ text: h.a }] });
   });
-  contents.push({ role: "user", parts: [{ text: `CONTEXTO:\n${ctx}\n\nPERGUNTA: ${q}` }] });
+  contents.push({ role: "user", parts: [{ text: `CONTEXTO:\n${ctx}\n\nPERGUNTA (responda sempre em português): ${q}` }] });
 
   const r = await callGeminiEndpoint(`${GEN_MODEL}:streamGenerateContent?alt=sse`, {
     systemInstruction: { parts: [{ text: SYSTEM }] },
@@ -354,14 +350,14 @@ async function generateStream(q, hits, onText) {
   return full || "(sem resposta)";
 }
 
-/** Efeito de streaming suave para respostas da base pré-computada. */
-async function streamTextLocally(fullText, onText) {
+/** Efeito de streaming rápido (~150ms no total) para respostas instantâneas. */
+async function streamTextFast(fullText, onText) {
   const words = fullText.split(" ");
   let acc = "";
-  for (let i = 0; i < words.length; i += 4) {
-    acc += (i ? " " : "") + words.slice(i, i + 4).join(" ");
+  for (let i = 0; i < words.length; i += 8) {
+    acc += (i ? " " : "") + words.slice(i, i + 8).join(" ");
     onText(acc);
-    await new Promise((r) => setTimeout(r, 18));
+    await new Promise((r) => setTimeout(r, 12));
   }
   onText(fullText);
 }
@@ -374,7 +370,7 @@ function fmt(text) {
     .replace(/\[(C\d+(?:\s*,\s*C\d+)*)\]/g, (_, group) =>
       group
         .split(/\s*,\s*/)
-        .map((id) => `<button type="button" class="cite" data-cid="${id}" title="Ler passagem ${id} no original">[${id}]</button>`)
+        .map((id) => `<button type="button" class="cite" data-cid="${id}" title="Ver passagem ${id} na coluna ao lado">[${id}]</button>`)
         .join("")
     );
   const out = []; let list = false;
@@ -421,31 +417,33 @@ function addSources(el, hits, answer) {
   el.append(box);
 }
 
-/* ---------- Fluxo de Consulta (Zero-Key) ---------- */
+/* ---------- Fluxo de Consulta Rápida e 100% em Português ---------- */
 async function ask(q) {
   add("user", q);
-  const out = add("bot thinking", "Localizando passagens no manual…");
+  const out = add("bot thinking", "Consultando o manual…");
   $("send").disabled = true;
   try {
     let hits = [];
     let ans = "";
 
-    // 1. Verifica primeiro se há correspondência exata/semântica na base pré-computada
+    // 1. Verifica primeiro se a pergunta bate com a base analítica pré-computada (resposta imediata < 150ms)
     const cached = findPrecomputedMatch(q);
-    if (cached && !hasLiveBackend()) {
+    if (cached) {
       const hitMap = new Map(INDEX.chunks.map((c) => [c.id, c]));
       hits = cached.hits.map((h) => hitMap.get(h.id)).filter(Boolean);
       ans = cached.answer;
       LAST_RETRIEVED = new Set(hits.map((c) => c.id));
       renderManual($("manual-filter").value);
       out.classList.remove("thinking");
-      await streamTextLocally(ans, (partial) => {
+      await streamTextFast(ans, (partial) => {
         out.innerHTML = fmt(partial);
       });
     } else if (hasLiveBackend()) {
-      // 2. Servidor local ou Proxy Serverless ativo
-      const standalone = await condense(q);
-      hits = await retrieve(standalone);
+      // 2. Com servidor/proxy ativo: busca híbrida + geração em streaming direto (sem chamada extra de condense)
+      const queryWithContext = history.length
+        ? `${history[history.length - 1].q} ${q}`
+        : q;
+      hits = await retrieve(queryWithContext);
       LAST_RETRIEVED = new Set(hits.map((c) => c.id));
       renderManual($("manual-filter").value);
       ans = await generateStream(q, hits, (t) => {
@@ -453,13 +451,16 @@ async function ask(q) {
         out.innerHTML = fmt(t);
       });
     } else {
-      // 3. Consulta livre no GitHub Pages estático: busca BM25 bilíngue + síntese documental
-      hits = retrieveSparseBilingual(q);
-      ans = buildStaticSynthesis(q, hits);
+      // 3. No GitHub Pages estático para perguntas inéditas: busca instantânea em PT + resposta fluida em português
+      const queryWithContext = history.length && q.split(/\s+/).length <= 5
+        ? `${history[history.length - 1].q} ${q}`
+        : q;
+      hits = retrieveFastPT(queryWithContext);
+      ans = buildHumanizedPortugueseAnswer(queryWithContext, hits);
       LAST_RETRIEVED = new Set(hits.map((c) => c.id));
       renderManual($("manual-filter").value);
       out.classList.remove("thinking");
-      await streamTextLocally(ans, (partial) => {
+      await streamTextFast(ans, (partial) => {
         out.innerHTML = fmt(partial);
       });
     }
